@@ -1,0 +1,143 @@
+---
+output:
+  html_document:
+    code_download: false
+    toc: true                  # table of content true
+    toc_depth: 3               # upto three depths of headings (specified by #, ## and ###)
+    toc_float: true
+    number_sections: true      # if you want number sections at each table header
+    theme: united              # many options for theme, this one is my favorite.
+    highlight: tango           # specifies the syntax highlighting style
+    css: 'style.css'
+params:
+  database_connection_log: false
+
+  phenotypefields_remove: false
+  participants_remove: false
+  zpvs_remove: false
+  phenolabels_remove: false
+
+  phenotypefields_ingest: false
+  participants_ingest: false
+  zpvs_ingest: false
+
+title: "`r paste0('GEL clinical data ingestion report' , '') `"
+author: ""
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+---
+<style type="text/css">
+h4.date {
+  text-align: center;
+}
+</style>
+
+<img src="logo.png" width=100 style="position:absolute;top:4px;bottom:4px;right:4px;" />
+
+This report presents the results of removal and ingestion for phenotypefields, participants and zpv_f collection files. More details can be found in ingestion/removal logs and individual step logs.
+
+```{r include = FALSE}
+knitr::opts_chunk$set(echo=FALSE, warning=FALSE)
+```
+
+```{r echo = FALSE}
+source("DTable.R")
+suppressPackageStartupMessages({
+  require(magrittr)
+  require(DT)
+  require(data.table)
+  require(htmltools)
+  require(readr)
+  require(stringr)
+  require(dplyr)
+  require(kableExtra)
+})
+```
+
+```{r, results='asis'}
+if(params$database_connection_log != "false"){
+  # - Connection status
+  cat(readr::read_file(params$database_connection_log))
+}
+```
+
+```{r, results='asis'}
+if ((params$phenotypefields_remove != "false")||(params$participants_remove != "false")||(params$phenolabels_remove != "false")||(params$zpvs_remove != "false")){
+  cat("# - Removal status\nThe following table presents the results of phenotypefields, participants, phenolabels and zpv_f collections removal from database. This check is used to assess whether all documents were removed from the database. For further details please see specific removal logs and specific script logs.")
+
+  title <- c("Collection_name","Documents_in_MongoDB_after_removal")
+
+  if(params$phenotypefields_remove != "false"){
+    phenotypefields <- as.data.frame(data.table::fread(params$phenotypefields_remove))
+    if(exists("outputTable")){
+      outputTable <- rbind(outputTable, phenotypefields)
+    } else {
+      outputTable <- phenotypefields
+    }
+  }
+  if(params$participants_remove != "false"){
+    participants <- as.data.frame(data.table::fread(params$participants_remove))
+    if(exists("outputTable")){
+      outputTable <- rbind(outputTable, participants)
+    } else {
+      outputTable <- participants
+    }
+  }
+  if(params$phenolabels_remove != "false"){
+    phenolabels <- as.data.frame(data.table::fread(params$phenolabels_remove))
+    if(exists("outputTable")){
+      outputTable <- rbind(outputTable, phenolabels)
+    } else {
+      outputTable <- phenolabels
+    }
+  }
+  if(params$zpvs_remove != "false"){
+    zpvs <- as.data.frame(data.table::fread(params$zpvs_remove))
+    if(exists("outputTable")){
+      outputTable <- rbind(outputTable, zpvs)
+    } else {
+      outputTable <- zpvs
+    }
+  }
+
+  colnames(outputTable) <- title
+  DT::datatable(outputTable, filter = "top", extensions = c('Buttons'), options = list(pageLength = 5, scrollX = TRUE, dom = 'Bfrtip', buttons = c('csv')), rownames = F)
+
+}
+```
+
+```{r, results='asis'}
+if ((params$phenotypefields_ingest != "false")||(params$zpvs_ingest != "false")||(params$participants_ingest != "false")){
+  cat("# - Ingestion status\nThe following table presents the results of phenotypefields.json, participants.json and zpv_f collection ingestion into database. This check is used to assess whether all documents from the input JSON files were ingested into the database. For further details please see specific ingestion logs and specific script logs.")
+
+  title <- c("Collection_name","Documents_in_json","Documents_in_MongoDB")
+
+  if(params$phenotypefields_ingest != "false"){
+    phenotypefields   <- as.data.frame(data.table::fread(params$phenotypefields_ingest))
+    if(exists("outputTable2")){
+      outputTable2 <- rbind(outputTable2, phenotypefields)
+    } else {
+      outputTable2 <- phenotypefields
+    }
+  }
+  if(params$zpvs_ingest != "false"){
+    zpvs   <- as.data.frame(data.table::fread(params$zpvs_ingest))
+    if(exists("outputTable2")){
+      outputTable2 <- rbind(outputTable2, zpvs)
+    } else {
+      outputTable2 <- zpvs
+    }
+  }
+  if(params$participants_ingest != "false"){
+    participants   <- as.data.frame(data.table::fread(params$participants_ingest))
+    if(exists("outputTable2")){
+      outputTable2 <- rbind(outputTable2, participants)
+    } else {
+      outputTable2 <- participants
+    }
+  }
+
+  colnames(outputTable2) <- title
+
+  DT::datatable(outputTable2, filter = "top", extensions = c('Buttons'), options = list(pageLength = 5, scrollX = TRUE, dom = 'Bfrtip', buttons = c('csv')), rownames = F)
+}
+```

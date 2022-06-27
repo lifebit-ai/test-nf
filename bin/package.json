@@ -1,0 +1,17 @@
+{
+  "name": "lifebit-ai_gel-mongodb-ingestion",
+  "version": "1.0.0",
+  "description": "Repository to ingest gel data into mongoDB",
+  "main": "ingest_into_mongodb.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "commander": "^8.0.0",
+    "mongodb": "^3.6.10",
+    "mongoose": "^5.13.3"
+  }
+}

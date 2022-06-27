@@ -1,0 +1,22 @@
+# Ignore the following:
+
+# nextflow execution specific files
+.nextflow*
+work/
+results/
+
+# macOS data
+.DS_Store
+
+# gcloud service account key
+*-*.json
+
+# node modules
+/bin/node_modules
+
+# R history
+.Rhistory
+
+# Do not ignore the following:
+!/bin/package.json
+!/bin/package-lock.json

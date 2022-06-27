@@ -1,0 +1,19 @@
+name: gel-mongodb-ingestion
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+  - anaconda
+dependencies:
+  - r-base=4.0.3
+  - r-data.table
+  - r-magrittr
+  - r-dt
+  - r-htmltools
+  - r-stringr
+  - r-readr
+  - r-dplyr
+  - r-kableextra
+  - awscli
+  - jq
+  - fonts-anaconda

@@ -1,0 +1,54 @@
+name: CI test
+# This workflow is triggered on PRs of type review_requested or ready_for_review, against dev or main
+on:
+  pull_request:
+    types: [review_requested, ready_for_review]
+    branches:
+      - main
+      - dev
+  workflow_dispatch:
+
+jobs:
+  ingestion_test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        nxf_ver: ['20.01.0', '20.04.0']
+      max-parallel: 1
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Nextflow
+        run: |
+          export NXF_VER=${{ matrix.nxf_ver }}
+          wget -qO- get.nextflow.io | bash
+          sudo mv nextflow /usr/local/bin/
+      - name: Check MongoDB connection
+        env:
+          ATLAS_DB_URI_NO_SCHEMA: ${{ secrets.ATLAS_DB_URI_NO_SCHEMA }}
+          ATLAS_DB_NAME_NO_SCHEMA: ${{ secrets.ATLAS_DB_NAME_NO_SCHEMA }}
+        run: |
+          nextflow run ${GITHUB_WORKSPACE} -profile connection_check --db_name "${ATLAS_DB_NAME_NO_SCHEMA}" --db_uri "${ATLAS_DB_URI_NO_SCHEMA}"
+      - name: Ingest without schema
+        env:
+          ATLAS_DB_URI_NO_SCHEMA: ${{ secrets.ATLAS_DB_URI_NO_SCHEMA }}
+          ATLAS_DB_NAME_NO_SCHEMA: ${{ secrets.ATLAS_DB_NAME_NO_SCHEMA }}
+        run: |
+          nextflow run ${GITHUB_WORKSPACE} -profile no_schema --db_name "${ATLAS_DB_NAME_NO_SCHEMA}" --db_uri "${ATLAS_DB_URI_NO_SCHEMA}"
+      - name: Ingest with schema
+        env:
+          ATLAS_DB_URI_SCHEMA: ${{ secrets.ATLAS_DB_URI_SCHEMA }}
+          ATLAS_DB_NAME_SCHEMA: ${{ secrets.ATLAS_DB_NAME_SCHEMA }}
+        run: |
+          nextflow run ${GITHUB_WORKSPACE} -profile with_schema --db_name "${ATLAS_DB_NAME_SCHEMA}" --db_uri "${ATLAS_DB_URI_SCHEMA}"
+      - name: Ingest only zpvs
+        env:
+          ATLAS_DB_URI_SCHEMA: ${{ secrets.ATLAS_DB_URI_SCHEMA }}
+          ATLAS_DB_NAME_SCHEMA: ${{ secrets.ATLAS_DB_NAME_SCHEMA }}
+        run: |
+          nextflow run ${GITHUB_WORKSPACE} -profile no_schema_zpvs_only --db_name "${ATLAS_DB_NAME_SCHEMA}" --db_uri "${ATLAS_DB_URI_SCHEMA}"
+      - name: Ingest participants and phenotypefields
+        env:
+          ATLAS_DB_URI_SCHEMA: ${{ secrets.ATLAS_DB_URI_SCHEMA }}
+          ATLAS_DB_NAME_SCHEMA: ${{ secrets.ATLAS_DB_NAME_SCHEMA }}
+        run: |
+          nextflow run ${GITHUB_WORKSPACE} -profile with_schema_phenotypefields_and_participants --db_name "${ATLAS_DB_NAME_SCHEMA}" --db_uri "${ATLAS_DB_URI_SCHEMA}"
