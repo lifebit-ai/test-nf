@@ -16,7 +16,7 @@ jobs:
         nxf_ver: ['20.01.0', '20.04.0']
       max-parallel: 1
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install Nextflow
         run: |
           export NXF_VER=${{ matrix.nxf_ver }}
